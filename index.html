@@ -4,766 +4,681 @@
 <meta charset="UTF-8"/>
 <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
 <title>Bond Risk Dashboard</title>
-<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;600;700;900&family=Plus+Jakarta+Sans:wght@300;400;500;600;700&display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Instrument+Serif:ital@0;1&family=Outfit:wght@300;400;500;600;700&display=swap" rel="stylesheet"/>
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 <style>
 
-/* ═══════════════════════════════════════
-   ROOT & RESET
-═══════════════════════════════════════ */
-*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
-
+/* ─────────────────────────────────────
+   TOKENS
+───────────────────────────────────── */
 :root {
-  --cream:    #f7f4ef;
-  --cream2:   #f0ebe3;
-  --cream3:   #e8e1d6;
-  --navy:     #0c1a2e;
-  --navy2:    #152338;
-  --navy3:    #1e3354;
-  --ink:      #1a2640;
-  --ink2:     #2d3f5c;
-  --ink3:     #4d647e;
-  --muted:    #8a9bb5;
-  --border:   rgba(12,26,46,0.10);
-  --border2:  rgba(12,26,46,0.18);
-  --gold:     #c4862a;
-  --gold2:    #e0a53e;
-  --gold-bg:  rgba(196,134,42,0.10);
-  --low:      #1a8a5a;
-  --low-l:    #22c97e;
-  --low-bg:   rgba(26,138,90,0.09);
-  --low-bd:   rgba(26,138,90,0.22);
-  --mod:      #b05b00;
-  --mod-l:    #f59e0b;
-  --mod-bg:   rgba(176,91,0,0.09);
-  --mod-bd:   rgba(176,91,0,0.22);
-  --hi:       #b01a1a;
-  --hi-l:     #f43f5e;
-  --hi-bg:    rgba(176,26,26,0.09);
-  --hi-bd:    rgba(176,26,26,0.22);
-  --shadow:   0 2px 20px rgba(12,26,46,0.08);
-  --shadow2:  0 8px 40px rgba(12,26,46,0.12);
-  --r:        16px;
-  --rs:       10px;
+  --bg:         #f5f7fa;
+  --surface:    #ffffff;
+  --surf2:      #f9fafb;
+  --navy:       #111827;
+  --navy2:      #1f2d44;
+  --navy3:      #263d5c;
+  --ink:        #1e293b;
+  --ink2:       #374151;
+  --ink3:       #6b7280;
+  --border:     #e5e9ef;
+  --border2:    #d1d9e4;
+  --gold:       #b5813a;
+  --gold-l:     #d4a44c;
+  --gold-bg:    rgba(181,129,58,0.09);
+  --low:        #16764f;
+  --low-l:      #22c47a;
+  --low-bg:     rgba(22,118,79,0.08);
+  --low-bd:     rgba(22,118,79,0.20);
+  --mod:        #9a5c00;
+  --mod-l:      #f59e0b;
+  --mod-bg:     rgba(154,92,0,0.08);
+  --mod-bd:     rgba(154,92,0,0.20);
+  --hi:         #991b1b;
+  --hi-l:       #f43f5e;
+  --hi-bg:      rgba(153,27,27,0.08);
+  --hi-bd:      rgba(153,27,27,0.20);
+  --sh:         0 1px 3px rgba(17,24,39,0.06), 0 4px 16px rgba(17,24,39,0.06);
+  --sh2:        0 2px 8px rgba(17,24,39,0.08), 0 8px 32px rgba(17,24,39,0.09);
+  --r:          14px;
+  --rs:         9px;
 }
 
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
 html { scroll-behavior: smooth; }
 
 body {
-  font-family: 'Plus Jakarta Sans', sans-serif;
-  background: var(--cream);
+  font-family: 'Outfit', sans-serif;
+  background: var(--bg);
   color: var(--ink);
   min-height: 100vh;
   overflow-x: hidden;
 }
 
-/* Subtle background texture */
-body::before {
-  content: '';
-  position: fixed; inset: 0; pointer-events: none; z-index: 0;
-  background-image:
-    radial-gradient(ellipse 900px 700px at 100% 0%, rgba(196,134,42,0.06) 0%, transparent 65%),
-    radial-gradient(ellipse 700px 600px at 0% 100%, rgba(12,26,46,0.05) 0%, transparent 65%);
-}
-
-/* ═══════════════════════════════════════
+/* ─────────────────────────────────────
    HEADER
-═══════════════════════════════════════ */
-header {
+───────────────────────────────────── */
+.site-header {
   background: var(--navy);
-  position: sticky; top: 0; z-index: 100;
-  box-shadow: 0 2px 24px rgba(12,26,46,0.35);
+  position: sticky; top: 0; z-index: 200;
+  box-shadow: 0 2px 20px rgba(17,24,39,0.4);
 }
-.hinner {
-  max-width: 1200px; margin: 0 auto;
-  padding: 0 32px; height: 64px;
+.hbar {
+  max-width: 1180px; margin: 0 auto;
+  padding: 0 28px; height: 60px;
   display: flex; align-items: center; justify-content: space-between;
 }
-.hbrand { display: flex; align-items: center; gap: 13px; }
-.hlogo {
-  width: 40px; height: 40px;
-  background: linear-gradient(135deg, var(--gold), var(--gold2));
-  border-radius: 10px;
+.hlogo { display: flex; align-items: center; gap: 11px; }
+.hlogo-icon {
+  width: 36px; height: 36px;
+  background: linear-gradient(135deg, var(--gold), var(--gold-l));
+  border-radius: 9px;
   display: flex; align-items: center; justify-content: center;
-  font-size: 18px;
-  box-shadow: 0 4px 16px rgba(196,134,42,0.4);
-  flex-shrink: 0;
+  font-size: 16px; flex-shrink: 0;
+  box-shadow: 0 3px 12px rgba(181,129,58,0.38);
 }
-.hname {
-  font-family: 'Playfair Display', serif;
-  font-size: 1.15rem; font-weight: 700;
-  color: #fff; letter-spacing: -0.01em;
+.hlogo-text {
+  font-family: 'Instrument Serif', serif;
+  font-size: 1.05rem; color: #fff; letter-spacing: -.01em;
 }
-.hsub {
-  font-size: 0.64rem; color: rgba(255,255,255,0.45);
-  letter-spacing: 0.09em; text-transform: uppercase;
+.hlogo-sub {
+  font-size: .6rem; color: rgba(255,255,255,.38);
+  letter-spacing: .09em; text-transform: uppercase;
 }
-.htags { display: flex; gap: 8px; align-items: center; }
-.htag {
-  padding: 4px 12px; border-radius: 20px;
-  font-size: 0.65rem; font-weight: 600;
-  letter-spacing: 0.05em; text-transform: uppercase;
+.hbadges { display: flex; gap: 7px; align-items: center; }
+.badge {
+  padding: 3px 11px; border-radius: 20px;
+  font-size: .62rem; font-weight: 600;
+  letter-spacing: .05em; text-transform: uppercase;
 }
-.htag-gold {
-  background: rgba(196,134,42,0.18);
-  border: 1px solid rgba(196,134,42,0.35);
-  color: var(--gold2);
+.badge-gold {
+  background: rgba(181,129,58,.18);
+  border: 1px solid rgba(181,129,58,.32);
+  color: var(--gold-l);
 }
-.htag-light {
-  background: rgba(255,255,255,0.08);
-  border: 1px solid rgba(255,255,255,0.15);
-  color: rgba(255,255,255,0.6);
+.badge-dim {
+  background: rgba(255,255,255,.07);
+  border: 1px solid rgba(255,255,255,.12);
+  color: rgba(255,255,255,.5);
 }
 
-/* ═══════════════════════════════════════
-   PAGE HERO
-═══════════════════════════════════════ */
+/* ─────────────────────────────────────
+   HERO BAND
+───────────────────────────────────── */
 .hero {
-  background: var(--navy);
-  padding: 40px 32px 52px;
+  background: linear-gradient(160deg, var(--navy) 0%, var(--navy3) 100%);
+  padding: 44px 28px 60px;
   text-align: center;
   position: relative; overflow: hidden;
 }
-.hero::before {
+.hero::after {
   content: '';
   position: absolute; inset: 0; pointer-events: none;
-  background: radial-gradient(ellipse 800px 400px at 50% 120%, rgba(196,134,42,0.12) 0%, transparent 60%);
+  background: radial-gradient(ellipse 700px 300px at 50% 130%, rgba(181,129,58,.13) 0%, transparent 60%);
 }
-.hero-inner { max-width: 640px; margin: 0 auto; position: relative; z-index: 1; }
-.hero-chip {
-  display: inline-flex; align-items: center; gap: 6px;
-  background: rgba(196,134,42,0.15);
-  border: 1px solid rgba(196,134,42,0.3);
-  color: var(--gold2);
-  font-size: 0.68rem; font-weight: 600;
-  padding: 4px 14px; border-radius: 20px;
-  letter-spacing: 0.06em; text-transform: uppercase;
-  margin-bottom: 16px;
+.hero-inner { max-width: 580px; margin: 0 auto; position: relative; z-index: 1; }
+.hero-eyebrow {
+  display: inline-flex; align-items: center; gap: 5px;
+  background: rgba(181,129,58,.15); border: 1px solid rgba(181,129,58,.28);
+  color: var(--gold-l); font-size: .64rem; font-weight: 600;
+  padding: 4px 13px; border-radius: 20px;
+  letter-spacing: .07em; text-transform: uppercase; margin-bottom: 14px;
 }
 .hero h1 {
-  font-family: 'Playfair Display', serif;
-  font-size: clamp(1.7rem, 4vw, 2.6rem);
-  font-weight: 900; color: #fff;
-  letter-spacing: -0.02em; line-height: 1.2;
-  margin-bottom: 10px;
+  font-family: 'Instrument Serif', serif;
+  font-size: clamp(1.8rem, 4.5vw, 2.7rem);
+  color: #fff; letter-spacing: -.02em; line-height: 1.18; margin-bottom: 10px;
 }
-.hero h1 span {
-  background: linear-gradient(135deg, var(--gold), var(--gold2));
+.hero h1 em {
+  font-style: italic;
+  background: linear-gradient(135deg, var(--gold), var(--gold-l));
   -webkit-background-clip: text; -webkit-text-fill-color: transparent;
   background-clip: text;
 }
 .hero p {
-  font-size: 0.88rem; color: rgba(255,255,255,0.5);
-  font-weight: 300; letter-spacing: 0.01em;
+  font-size: .88rem; color: rgba(255,255,255,.46);
+  font-weight: 300; letter-spacing: .01em;
 }
 
-/* ═══════════════════════════════════════
-   MAIN WRAP
-═══════════════════════════════════════ */
+/* ─────────────────────────────────────
+   WRAP / GRID
+───────────────────────────────────── */
 .wrap {
-  max-width: 1200px; margin: 0 auto;
+  max-width: 1180px; margin: 0 auto;
   padding: 0 24px 80px;
+  margin-top: -26px;
   position: relative; z-index: 1;
-  margin-top: -24px;
 }
 
-/* ═══════════════════════════════════════
-   CARDS
-═══════════════════════════════════════ */
+/* Row layouts */
+.r1 { display: grid; grid-template-columns: 320px 1fr; gap: 18px; margin-bottom: 18px; align-items: start; }
+.r2 { display: grid; grid-template-columns: 1fr 1fr; gap: 18px; margin-bottom: 18px; }
+.r3 { display: grid; grid-template-columns: 1fr 340px; gap: 18px; margin-bottom: 18px; }
+.r4 { margin-bottom: 0; }
+
+/* ─────────────────────────────────────
+   CARD
+───────────────────────────────────── */
 .card {
-  background: #fff;
+  background: var(--surface);
   border: 1px solid var(--border);
   border-radius: var(--r);
-  box-shadow: var(--shadow);
+  box-shadow: var(--sh);
   overflow: hidden;
-  transition: box-shadow 0.3s, transform 0.3s, border-color 0.3s;
+  transition: box-shadow .28s, transform .28s, border-color .28s;
 }
 .card:hover {
-  box-shadow: var(--shadow2);
+  box-shadow: var(--sh2);
   border-color: var(--border2);
-  transform: translateY(-2px);
+  transform: translateY(-1px);
 }
-.card-hd {
-  padding: 20px 24px 16px;
+.card-head {
+  padding: 17px 22px 13px;
   border-bottom: 1px solid var(--border);
-  display: flex; align-items: center; gap: 10px;
+  display: flex; align-items: center; gap: 9px;
 }
-.card-icon {
-  width: 34px; height: 34px;
-  border-radius: var(--rs);
+.ch-icon {
+  width: 30px; height: 30px; border-radius: var(--rs);
   display: flex; align-items: center; justify-content: center;
-  font-size: 15px; flex-shrink: 0;
+  font-size: 13px; flex-shrink: 0;
 }
-.ci-navy { background: rgba(12,26,46,0.07); }
-.ci-gold { background: var(--gold-bg); }
-.ci-green{ background: var(--low-bg); }
-.card-title {
-  font-family: 'Playfair Display', serif;
-  font-size: 1rem; font-weight: 700;
-  color: var(--ink); letter-spacing: -0.01em;
+.ch-icon.navy { background: rgba(17,24,39,.07); }
+.ch-icon.gold { background: var(--gold-bg); }
+.ch-icon.blue { background: rgba(37,99,235,.07); }
+.ch-icon.green{ background: var(--low-bg); }
+.ch-title {
+  font-family: 'Instrument Serif', serif;
+  font-size: .97rem; color: var(--ink); letter-spacing: -.01em;
 }
-.card-tag {
-  margin-left: auto; font-size: 0.62rem; font-weight: 600;
-  padding: 3px 10px; border-radius: 20px;
-  letter-spacing: 0.05em; text-transform: uppercase;
-  background: var(--cream2); border: 1px solid var(--border);
-  color: var(--ink3);
+.ch-tag {
+  margin-left: auto; font-size: .6rem; font-weight: 600;
+  padding: 2px 9px; border-radius: 20px; letter-spacing: .05em; text-transform: uppercase;
+  background: var(--surf2); border: 1px solid var(--border); color: var(--ink3);
 }
-.card-bd { padding: 22px 24px; }
+.card-body { padding: 20px 22px; }
 
-/* ═══════════════════════════════════════
-   LAYOUT GRID
-═══════════════════════════════════════ */
-.row1 {
-  display: grid;
-  grid-template-columns: 340px 1fr;
-  gap: 20px;
-  margin-bottom: 20px;
-  align-items: start;
-}
-.row2 {
-  display: grid;
-  grid-template-columns: 1fr 1fr;
-  gap: 20px;
-  margin-bottom: 20px;
-}
-.row3 { margin-bottom: 0; }
-
-/* ═══════════════════════════════════════
+/* ─────────────────────────────────────
    INPUT PANEL
-═══════════════════════════════════════ */
-.preset-label {
-  font-size: 0.66rem; font-weight: 700; color: var(--muted);
-  letter-spacing: 0.08em; text-transform: uppercase; margin-bottom: 8px;
+───────────────────────────────────── */
+.preset-lbl {
+  font-size: .63rem; font-weight: 700; color: var(--ink3);
+  letter-spacing: .08em; text-transform: uppercase; margin-bottom: 7px;
 }
-.preset-row { display: flex; gap: 8px; margin-bottom: 22px; }
-.pbtn {
-  flex: 1; padding: 9px 8px;
-  border-radius: var(--rs);
-  border: 1.5px solid var(--border);
-  background: var(--cream2);
-  font-family: 'Plus Jakarta Sans', sans-serif;
-  font-size: 0.75rem; font-weight: 700;
-  cursor: pointer; transition: all 0.22s;
-  text-align: center; color: var(--ink2);
+.preset-row { display: flex; gap: 7px; margin-bottom: 20px; }
+.scbtn {
+  flex: 1; padding: 8px 6px; border-radius: var(--rs);
+  border: 1.5px solid var(--border); background: var(--surf2);
+  font-family: 'Outfit', sans-serif; font-size: .73rem; font-weight: 700;
+  cursor: pointer; transition: all .2s; text-align: center; color: var(--ink2);
 }
-.pbtn:active { transform: scale(0.97); }
-.pbtn.safe {
-  border-color: var(--low-bd); color: var(--low);
-  background: var(--low-bg);
+.scbtn:active { transform: scale(.97); }
+.scbtn.sc-safe { border-color: var(--low-bd); color: var(--low); background: var(--low-bg); }
+.scbtn.sc-safe:hover {
+  background: rgba(22,118,79,.14); border-color: var(--low);
+  box-shadow: 0 3px 12px rgba(22,118,79,.18); transform: translateY(-1px);
 }
-.pbtn.safe:hover {
-  background: rgba(26,138,90,0.15); border-color: var(--low);
-  box-shadow: 0 4px 14px rgba(26,138,90,0.2);
-  transform: translateY(-1px);
-}
-.pbtn.risky {
-  border-color: var(--hi-bd); color: var(--hi);
-  background: var(--hi-bg);
-}
-.pbtn.risky:hover {
-  background: rgba(176,26,26,0.14); border-color: var(--hi);
-  box-shadow: 0 4px 14px rgba(176,26,26,0.2);
-  transform: translateY(-1px);
+.scbtn.sc-risky { border-color: var(--hi-bd); color: var(--hi); background: var(--hi-bg); }
+.scbtn.sc-risky:hover {
+  background: rgba(153,27,27,.13); border-color: var(--hi);
+  box-shadow: 0 3px 12px rgba(153,27,27,.18); transform: translateY(-1px);
 }
 
-.fg { margin-bottom: 14px; }
-.fg label {
-  display: block; font-size: 0.68rem; font-weight: 700;
-  color: var(--ink3); letter-spacing: 0.06em;
-  text-transform: uppercase; margin-bottom: 5px;
+.field { margin-bottom: 13px; }
+.field label {
+  display: block; font-size: .65rem; font-weight: 700; color: var(--ink3);
+  letter-spacing: .07em; text-transform: uppercase; margin-bottom: 5px;
 }
-.fg input {
-  width: 100%;
-  background: var(--cream2);
-  border: 1.5px solid var(--border);
-  border-radius: var(--rs);
-  padding: 10px 14px;
-  color: var(--ink);
-  font-family: 'Plus Jakarta Sans', sans-serif;
-  font-size: 0.9rem; font-weight: 500;
-  outline: none;
-  transition: border-color 0.22s, box-shadow 0.22s, background 0.22s;
-  -webkit-appearance: none;
+.field input {
+  width: 100%; background: var(--surf2);
+  border: 1.5px solid var(--border); border-radius: var(--rs);
+  padding: 9px 13px; color: var(--ink);
+  font-family: 'Outfit', sans-serif; font-size: .88rem; font-weight: 500;
+  outline: none; -webkit-appearance: none;
+  transition: border-color .2s, box-shadow .2s, background .2s;
 }
-.fg input:focus {
-  border-color: var(--navy);
-  background: #fff;
-  box-shadow: 0 0 0 3px rgba(12,26,46,0.09);
+.field input:focus {
+  border-color: var(--navy); background: var(--surface);
+  box-shadow: 0 0 0 3px rgba(17,24,39,.08);
 }
-.fgrow { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+.field-row { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
 
-.calc-btn {
-  width: 100%; padding: 13px;
-  background: var(--navy);
-  border: none; border-radius: var(--rs);
-  color: #fff; font-family: 'Plus Jakarta Sans', sans-serif;
-  font-size: 0.92rem; font-weight: 700;
-  cursor: pointer; letter-spacing: 0.02em;
-  transition: all 0.25s;
-  box-shadow: 0 4px 18px rgba(12,26,46,0.3);
-  margin-top: 4px; position: relative; overflow: hidden;
+.run-btn {
+  width: 100%; padding: 12px; margin-top: 4px;
+  background: var(--navy); border: none; border-radius: var(--rs);
+  color: #fff; font-family: 'Outfit', sans-serif;
+  font-size: .9rem; font-weight: 700; cursor: pointer;
+  letter-spacing: .02em; position: relative; overflow: hidden;
+  transition: all .25s; box-shadow: 0 3px 16px rgba(17,24,39,.28);
 }
-.calc-btn::before {
+.run-btn::before {
   content: ''; position: absolute; inset: 0;
-  background: linear-gradient(135deg, transparent, rgba(255,255,255,0.08));
-  opacity: 0; transition: opacity 0.25s;
+  background: linear-gradient(135deg, transparent, rgba(255,255,255,.07));
+  opacity: 0; transition: opacity .25s;
 }
-.calc-btn:hover { background: var(--navy2); box-shadow: 0 8px 28px rgba(12,26,46,0.4); transform: translateY(-1px); }
-.calc-btn:hover::before { opacity: 1; }
-.calc-btn:active { transform: translateY(0); }
+.run-btn:hover { background: var(--navy2); box-shadow: 0 6px 24px rgba(17,24,39,.38); transform: translateY(-1px); }
+.run-btn:hover::before { opacity: 1; }
+.run-btn:active { transform: translateY(0); }
 
-/* ═══════════════════════════════════════
-   RESULTS TILES
-═══════════════════════════════════════ */
-.tiles {
-  display: grid;
-  grid-template-columns: repeat(3, 1fr);
-  gap: 12px;
-  margin-bottom: 16px;
+/* ─────────────────────────────────────
+   RESULT TILES
+───────────────────────────────────── */
+.tile-grid {
+  display: grid; grid-template-columns: repeat(3, 1fr); gap: 11px; margin-bottom: 14px;
 }
 .tile {
-  background: var(--cream2);
-  border: 1px solid var(--border);
-  border-radius: var(--rs);
-  padding: 14px 16px;
-  position: relative; overflow: hidden;
-  transition: all 0.25s;
+  background: var(--surf2); border: 1px solid var(--border);
+  border-radius: var(--rs); padding: 13px 14px;
+  position: relative; overflow: hidden; transition: all .25s;
 }
-.tile::before {
+.tile::after {
   content: ''; position: absolute;
   bottom: 0; left: 0; right: 0; height: 2px;
-  background: linear-gradient(90deg, var(--navy), var(--gold));
-  opacity: 0.5;
+  background: linear-gradient(90deg, var(--navy2), var(--gold-l));
+  opacity: .4;
 }
-.tile:hover { background: #fff; border-color: var(--border2); transform: translateY(-2px); box-shadow: var(--shadow); }
-.tile-lbl {
-  font-size: 0.62rem; font-weight: 700; color: var(--muted);
-  letter-spacing: 0.07em; text-transform: uppercase; margin-bottom: 4px;
-}
+.tile:hover { background: var(--surface); border-color: var(--border2); transform: translateY(-2px); box-shadow: var(--sh); }
+.tile-lbl { font-size: .61rem; font-weight: 700; color: var(--ink3); letter-spacing: .07em; text-transform: uppercase; margin-bottom: 4px; }
 .tile-val {
-  font-family: 'Playfair Display', serif;
-  font-size: 1.45rem; font-weight: 700;
-  color: var(--ink); line-height: 1.1;
-  transition: color 0.35s;
+  font-family: 'Instrument Serif', serif; font-size: 1.4rem;
+  color: var(--ink); line-height: 1.1; transition: color .35s;
 }
-.tile-unit { font-size: 0.62rem; color: var(--muted); margin-top: 2px; }
+.tile-unit { font-size: .6rem; color: var(--ink3); margin-top: 2px; }
 
-/* Overall risk box */
-.overall-box {
-  background: var(--navy);
-  border-radius: var(--rs);
-  padding: 16px 20px;
-  display: flex; align-items: center; justify-content: space-between;
-  transition: all 0.4s;
+/* Overall risk */
+.ov-box {
+  background: var(--navy); border-radius: var(--rs);
+  padding: 15px 18px; display: flex; align-items: center;
+  justify-content: space-between; transition: all .38s;
   position: relative; overflow: hidden;
 }
-.overall-box::before {
-  content: ''; position: absolute; inset: 0;
-  background: radial-gradient(ellipse at 0% 50%, rgba(196,134,42,0.15) 0%, transparent 60%);
-  pointer-events: none;
+.ov-box::before {
+  content: ''; position: absolute; inset: 0; pointer-events: none;
+  background: radial-gradient(ellipse 400px 200px at 0% 50%, rgba(181,129,58,.14) 0%, transparent 65%);
 }
 .ov-left { position: relative; z-index: 1; }
-.ov-label {
-  font-size: 0.62rem; font-weight: 700;
-  color: rgba(255,255,255,0.45); letter-spacing: 0.08em;
-  text-transform: uppercase; margin-bottom: 3px;
+.ov-eyebrow {
+  font-size: .6rem; font-weight: 700; letter-spacing: .08em;
+  text-transform: uppercase; color: rgba(255,255,255,.35); margin-bottom: 2px;
 }
 .ov-value {
-  font-family: 'Playfair Display', serif;
-  font-size: 1.5rem; font-weight: 900;
-  color: rgba(255,255,255,0.4);
-  letter-spacing: -0.02em;
-  transition: color 0.4s;
+  font-family: 'Instrument Serif', serif; font-size: 1.55rem;
+  color: rgba(255,255,255,.3); letter-spacing: -.02em; transition: color .38s;
 }
-.ov-score {
-  font-size: 0.68rem; color: rgba(255,255,255,0.3);
-  margin-top: 2px;
-}
-.ov-score-bar {
-  display: flex; gap: 3px; margin-top: 6px;
-}
-.osb {
-  flex: 1; height: 4px; border-radius: 2px;
-  background: rgba(255,255,255,0.1);
-  transition: background 0.4s;
-}
-.ov-icon {
-  font-size: 2.4rem;
-  position: relative; z-index: 1;
-  transition: all 0.4s;
-}
+.ov-sub { font-size: .65rem; color: rgba(255,255,255,.28); margin-top: 2px; }
+.ov-bar { display: flex; gap: 3px; margin-top: 5px; }
+.ob { flex: 1; height: 3px; border-radius: 2px; background: rgba(255,255,255,.1); transition: background .38s; }
+.ov-emoji { font-size: 2.2rem; position: relative; z-index: 1; transition: all .35s; }
 
-/* ═══════════════════════════════════════
+/* ─────────────────────────────────────
    RISK METERS
-═══════════════════════════════════════ */
-.risk-meter {
-  padding: 18px 0;
-  border-bottom: 1px solid var(--border);
-  opacity: 0;
-  animation: fadeUp 0.5s ease forwards;
+───────────────────────────────────── */
+.rm-item {
+  padding: 16px 0; border-bottom: 1px solid var(--border);
+  opacity: 0; animation: fadeUp .5s ease forwards;
 }
-.risk-meter:last-child { border-bottom: none; padding-bottom: 0; }
+.rm-item:last-child { border-bottom: none; padding-bottom: 0; }
 
-.rm-top {
-  display: flex; justify-content: space-between;
-  align-items: flex-start; margin-bottom: 10px;
-}
+.rm-header { display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 9px; }
 .rm-left { flex: 1; }
 .rm-name {
-  display: flex; align-items: center; gap: 7px;
-  font-size: 0.88rem; font-weight: 700; color: var(--ink);
-  margin-bottom: 3px;
+  font-size: .86rem; font-weight: 700; color: var(--ink);
+  display: flex; align-items: center; gap: 6px; margin-bottom: 3px;
 }
-.rm-name .ico { font-size: 1rem; }
-.rm-desc {
-  font-size: 0.72rem; color: var(--muted);
-  font-style: italic; line-height: 1.5;
-  max-width: 320px;
+.rm-quote {
+  font-size: .7rem; color: var(--ink3); font-style: italic; line-height: 1.4;
 }
-.risk-badge {
-  font-size: 0.65rem; font-weight: 800;
-  letter-spacing: 0.09em; text-transform: uppercase;
-  padding: 4px 13px; border-radius: 20px;
-  flex-shrink: 0; margin-left: 12px;
-  transition: all 0.35s;
+.rm-badge {
+  font-size: .62rem; font-weight: 800; letter-spacing: .09em; text-transform: uppercase;
+  padding: 3px 11px; border-radius: 20px; flex-shrink: 0; margin-left: 10px;
+  transition: all .35s;
 }
-.rb-low  { background: var(--low-bg);  color: var(--low);  border: 1.5px solid var(--low-bd);  }
-.rb-mod  { background: var(--mod-bg);  color: var(--mod);  border: 1.5px solid var(--mod-bd);  }
-.rb-high { background: var(--hi-bg);   color: var(--hi);   border: 1.5px solid var(--hi-bd);   }
-.rb-nd   { background: var(--cream2);  color: var(--muted); border: 1.5px solid var(--border); }
+.rb-low  { background: var(--low-bg);  color: var(--low); border: 1.5px solid var(--low-bd); }
+.rb-mod  { background: var(--mod-bg);  color: var(--mod); border: 1.5px solid var(--mod-bd); }
+.rb-high { background: var(--hi-bg);   color: var(--hi);  border: 1.5px solid var(--hi-bd);  }
+.rb-nd   { background: var(--surf2);   color: var(--ink3); border: 1.5px solid var(--border); }
 
 .track {
-  height: 8px;
-  background: var(--cream2);
-  border-radius: 999px; overflow: hidden;
-  border: 1px solid var(--border);
+  height: 7px; background: var(--surf2); border-radius: 999px;
+  overflow: hidden; border: 1px solid var(--border);
 }
 .fill {
-  height: 100%; border-radius: 999px;
-  width: 0;
-  transition: width 1.1s cubic-bezier(0.4,0,0.2,1), background 0.4s;
+  height: 100%; border-radius: 999px; width: 0;
+  transition: width 1.1s cubic-bezier(.4,0,.2,1), background .4s;
 }
-.fill-low  { background: linear-gradient(90deg, #13694a, var(--low-l)); box-shadow: 0 0 8px rgba(26,138,90,0.3); }
-.fill-mod  { background: linear-gradient(90deg, #8a4700, var(--mod-l)); box-shadow: 0 0 8px rgba(176,91,0,0.3);  }
-.fill-high { background: linear-gradient(90deg, #8a1313, var(--hi-l));  box-shadow: 0 0 8px rgba(176,26,26,0.3); }
+.f-low  { background: linear-gradient(90deg, #0f5937, var(--low-l));  box-shadow: 0 0 7px rgba(22,118,79,.3); }
+.f-mod  { background: linear-gradient(90deg, #6b3e00, var(--mod-l));  box-shadow: 0 0 7px rgba(154,92,0,.3);  }
+.f-high { background: linear-gradient(90deg, #7f1212, var(--hi-l));   box-shadow: 0 0 7px rgba(153,27,27,.3); }
 
-/* ═══════════════════════════════════════
-   INSIGHT BOX
-═══════════════════════════════════════ */
-.insight-wrap {
-  background: linear-gradient(135deg, var(--navy) 0%, var(--navy3) 100%);
-  border-radius: var(--r);
-  padding: 28px 30px;
-  position: relative; overflow: hidden;
-  box-shadow: var(--shadow2);
+/* ─────────────────────────────────────
+   DURATION CARD
+───────────────────────────────────── */
+.dur-display {
+  display: flex; align-items: center; gap: 20px; margin-bottom: 16px;
 }
-.insight-wrap::before {
+.dur-number {
+  font-family: 'Instrument Serif', serif;
+  font-size: 3.2rem; line-height: 1; color: var(--navy); flex-shrink: 0;
+  transition: color .35s;
+}
+.dur-unit { font-size: .72rem; color: var(--ink3); font-weight: 600; text-transform: uppercase; letter-spacing: .07em; margin-top: 4px; }
+.dur-note { font-size: .78rem; color: var(--ink3); line-height: 1.6; }
+.dur-note strong { color: var(--ink); }
+
+.dur-scale { margin-top: 14px; }
+.ds-label { font-size: .62rem; font-weight: 700; color: var(--ink3); letter-spacing: .07em; text-transform: uppercase; margin-bottom: 7px; }
+.ds-track {
+  height: 8px; background: linear-gradient(90deg, var(--low-bg), var(--mod-bg), var(--hi-bg));
+  border-radius: 999px; position: relative; border: 1px solid var(--border);
+  overflow: visible;
+}
+.ds-thumb {
+  position: absolute; top: 50%; width: 14px; height: 14px;
+  background: var(--navy); border: 2px solid #fff;
+  border-radius: 50%; transform: translate(-50%, -50%);
+  box-shadow: 0 2px 8px rgba(17,24,39,.3);
+  transition: left 1s cubic-bezier(.4,0,.2,1), background .4s;
+  left: 0;
+}
+.ds-marks {
+  display: flex; justify-content: space-between; margin-top: 5px;
+}
+.ds-mark { font-size: .6rem; color: var(--ink3); font-weight: 600; }
+
+/* ─────────────────────────────────────
+   CHART PANEL
+───────────────────────────────────── */
+.chart-wrap { position: relative; height: 300px; }
+.chart-foot {
+  display: flex; flex-wrap: wrap; gap: 14px; margin-top: 12px; align-items: center;
+}
+.cf-item { display: flex; align-items: center; gap: 5px; font-size: .7rem; color: var(--ink3); }
+.cf-dot { width: 20px; height: 3px; border-radius: 2px; }
+
+/* ─────────────────────────────────────
+   INSIGHT PANEL
+───────────────────────────────────── */
+.insight-panel {
+  background: var(--navy); border-radius: var(--r);
+  padding: 26px 28px; position: relative; overflow: hidden;
+  box-shadow: var(--sh2);
+}
+.insight-panel::before {
   content: ''; position: absolute; inset: 0; pointer-events: none;
   background:
-    radial-gradient(ellipse 600px 400px at -10% 50%, rgba(196,134,42,0.12) 0%, transparent 60%),
-    radial-gradient(ellipse 400px 300px at 110% -20%, rgba(255,255,255,0.04) 0%, transparent 55%);
+    radial-gradient(ellipse 600px 400px at -5% 60%, rgba(181,129,58,.11) 0%, transparent 55%),
+    radial-gradient(ellipse 400px 300px at 105% -10%, rgba(255,255,255,.03) 0%, transparent 55%);
 }
-.insight-chip {
-  display: inline-flex; align-items: center; gap: 6px;
-  background: rgba(196,134,42,0.15); border: 1px solid rgba(196,134,42,0.3);
-  color: var(--gold2); font-size: 0.65rem; font-weight: 700;
-  padding: 4px 12px; border-radius: 20px;
-  letter-spacing: 0.06em; text-transform: uppercase; margin-bottom: 14px;
+.ip-chip {
+  display: inline-flex; align-items: center; gap: 5px;
+  background: rgba(181,129,58,.14); border: 1px solid rgba(181,129,58,.28);
+  color: var(--gold-l); font-size: .62rem; font-weight: 700;
+  padding: 3px 11px; border-radius: 20px;
+  letter-spacing: .07em; text-transform: uppercase; margin-bottom: 12px;
   position: relative; z-index: 1;
 }
-.insight-title {
-  font-family: 'Playfair Display', serif;
-  font-size: 1.1rem; font-weight: 700; color: #fff;
-  margin-bottom: 10px; position: relative; z-index: 1;
+.ip-heading {
+  font-family: 'Instrument Serif', serif;
+  font-size: 1.08rem; color: #fff; margin-bottom: 9px;
+  position: relative; z-index: 1;
 }
-.insight-body {
-  font-size: 0.85rem; color: rgba(255,255,255,0.65);
-  line-height: 1.75; position: relative; z-index: 1;
+.ip-body {
+  font-size: .82rem; color: rgba(255,255,255,.58); line-height: 1.78;
+  position: relative; z-index: 1;
 }
-.insight-body strong { color: #fff; }
-.insight-body .itag {
+.ip-body strong { color: rgba(255,255,255,.9); }
+.itag {
   display: inline-block;
-  background: rgba(255,255,255,0.09);
-  border: 1px solid rgba(255,255,255,0.15);
-  color: rgba(255,255,255,0.8);
-  font-size: 0.68rem; font-weight: 600; padding: 2px 9px;
-  border-radius: 4px; margin: 2px 2px 0 0;
-  letter-spacing: 0.03em; vertical-align: middle;
+  font-size: .65rem; font-weight: 600; padding: 2px 8px;
+  border-radius: 4px; margin: 1px 2px; vertical-align: middle; letter-spacing: .03em;
 }
-.insight-body .itag.red   { background:var(--hi-bg);  border-color:var(--hi-bd);  color:var(--hi-l); }
-.insight-body .itag.amber { background:var(--mod-bg); border-color:var(--mod-bd); color:var(--mod-l);}
-.insight-body .itag.green { background:var(--low-bg); border-color:var(--low-bd); color:var(--low-l);}
+.itag-red   { background: var(--hi-bg);  border: 1px solid var(--hi-bd);  color: #ff7070; }
+.itag-amber { background: var(--mod-bg); border: 1px solid var(--mod-bd); color: #f5b842; }
+.itag-green { background: var(--low-bg); border: 1px solid var(--low-bd); color: #4de899; }
 
-/* ═══════════════════════════════════════
-   SECTION DIVIDER
-═══════════════════════════════════════ */
-.sdiv {
+/* ─────────────────────────────────────
+   DIVIDER
+───────────────────────────────────── */
+.sep {
   height: 1px;
   background: linear-gradient(90deg, transparent, var(--border2) 25%, var(--border2) 75%, transparent);
-  margin: 4px 0 20px;
+  margin: 4px 0 18px;
 }
 
-/* ═══════════════════════════════════════
+/* ─────────────────────────────────────
    ANIMATIONS
-═══════════════════════════════════════ */
+───────────────────────────────────── */
 @keyframes fadeUp {
-  from { opacity: 0; transform: translateY(10px); }
-  to   { opacity: 1; transform: translateY(0); }
-}
-@keyframes fadeIn {
-  from { opacity: 0; }
-  to   { opacity: 1; }
-}
-@keyframes pulseRed {
-  0%,100% { box-shadow: 0 4px 18px rgba(12,26,46,0.3); }
-  50%      { box-shadow: 0 4px 30px rgba(176,26,26,0.5); }
+  from { opacity:0; transform:translateY(9px); }
+  to   { opacity:1; transform:translateY(0); }
 }
 @keyframes spin { to { transform: rotate(360deg); } }
+.spin { display:inline-block; animation:spin .65s linear infinite; }
 
-.pulse-red { animation: pulseRed 2s infinite !important; }
-.spin-ico  { display: inline-block; animation: spin 0.7s linear infinite; }
+@keyframes pulse-hi {
+  0%,100% { box-shadow: 0 3px 16px rgba(17,24,39,.28); }
+  50%      { box-shadow: 0 3px 28px rgba(153,27,27,.45); }
+}
+.pulse-hi { animation: pulse-hi 2.2s infinite !important; }
 
-/* ═══════════════════════════════════════
+/* ─────────────────────────────────────
    TOOLTIP
-═══════════════════════════════════════ */
+───────────────────────────────────── */
 [data-tip] { position: relative; cursor: help; }
 [data-tip]::after {
   content: attr(data-tip);
-  position: absolute; bottom: calc(100% + 7px); left: 50%;
+  position: absolute; bottom: calc(100% + 6px); left: 50%;
   transform: translateX(-50%);
-  background: var(--navy); color: rgba(255,255,255,0.85);
-  font-size: 0.66rem; padding: 5px 10px;
-  border-radius: 6px; white-space: nowrap;
-  pointer-events: none; opacity: 0;
-  transition: opacity 0.2s; z-index: 50;
-  font-style: normal; font-weight: 500;
-  box-shadow: 0 4px 12px rgba(12,26,46,0.25);
+  background: var(--navy); color: rgba(255,255,255,.82);
+  font-size: .63rem; padding: 5px 9px; border-radius: 6px;
+  white-space: nowrap; pointer-events: none; opacity: 0;
+  transition: opacity .18s; z-index: 60; font-weight: 500;
+  box-shadow: 0 3px 10px rgba(17,24,39,.25);
 }
 [data-tip]:hover::after { opacity: 1; }
 
-/* ═══════════════════════════════════════
+/* ─────────────────────────────────────
    FOOTER
-═══════════════════════════════════════ */
-footer {
-  text-align: center;
-  padding: 20px;
-  font-size: 0.7rem;
-  color: var(--muted);
+───────────────────────────────────── */
+.site-footer {
+  text-align: center; padding: 18px;
+  font-size: .67rem; color: var(--ink3);
   border-top: 1px solid var(--border);
-  margin-top: 20px;
 }
 
-/* ═══════════════════════════════════════
+/* ─────────────────────────────────────
    RESPONSIVE
-═══════════════════════════════════════ */
-@media(max-width: 960px) {
-  .row1 { grid-template-columns: 1fr; }
-  .row2 { grid-template-columns: 1fr; }
+───────────────────────────────────── */
+@media(max-width: 940px) {
+  .r1, .r2, .r3 { grid-template-columns: 1fr; }
 }
-@media(max-width: 600px) {
-  .hinner { padding: 0 16px; }
-  .wrap { padding: 0 14px 60px; }
-  .hero { padding: 28px 16px 44px; }
-  .tiles { grid-template-columns: 1fr 1fr; }
-  .card-bd { padding: 18px 16px; }
-  .insight-wrap { padding: 22px 20px; }
+@media(max-width: 560px) {
+  .hbar { padding: 0 14px; }
+  .wrap { padding: 0 12px 60px; }
+  .hero { padding: 26px 14px 44px; }
+  .tile-grid { grid-template-columns: 1fr 1fr; }
+  .card-body { padding: 16px 16px; }
+  .insight-panel { padding: 20px 18px; }
 }
 
-/* ═══════════════════════════════════════
-   SCROLLBAR
-═══════════════════════════════════════ */
-::-webkit-scrollbar { width: 6px; }
-::-webkit-scrollbar-track { background: var(--cream); }
-::-webkit-scrollbar-thumb { background: var(--cream3); border-radius: 3px; }
-::-webkit-scrollbar-thumb:hover { background: var(--muted); }
-
+::-webkit-scrollbar { width: 5px; }
+::-webkit-scrollbar-track { background: var(--bg); }
+::-webkit-scrollbar-thumb { background: var(--border2); border-radius: 3px; }
 </style>
 </head>
 <body>
 
-<!-- HEADER -->
-<header>
-  <div class="hinner">
-    <div class="hbrand">
-      <div class="hlogo">📊</div>
+<!-- ═══════════════ HEADER ═══════════════ -->
+<header class="site-header">
+  <div class="hbar">
+    <div class="hlogo">
+      <div class="hlogo-icon">📊</div>
       <div>
-        <div class="hname">Bond Risk Dashboard</div>
-        <div class="hsub">Financial Management Tool</div>
+        <div class="hlogo-text">Bond Risk Dashboard</div>
+        <div class="hlogo-sub">Financial Management Tool</div>
       </div>
     </div>
-    <div class="htags">
-      <div class="htag htag-gold">🎓 BBM Year 1</div>
-      <div class="htag htag-light">4 Risk Models</div>
+    <div class="hbadges">
+      <div class="badge badge-gold">🎓 BBM Year 1</div>
+      <div class="badge badge-dim">Chart.js Powered</div>
     </div>
   </div>
 </header>
 
-<!-- HERO -->
+<!-- ═══════════════ HERO ═══════════════ -->
 <div class="hero">
   <div class="hero-inner">
-    <div class="hero-chip">📊 Interactive Analysis Tool</div>
-    <h1>Bond Risk <span>Dashboard</span></h1>
+    <div class="hero-eyebrow">📊 Interactive Analysis</div>
+    <h1>Bond Risk <em>Dashboard</em></h1>
     <p>Understanding Key Risks Faced by Bond Investors</p>
   </div>
 </div>
 
-<!-- MAIN -->
+<!-- ═══════════════ MAIN ═══════════════ -->
 <div class="wrap">
 
-  <!-- ROW 1: INPUT + RESULTS -->
-  <div class="row1">
+  <!-- ROW 1 ─ Input + Results -->
+  <div class="r1">
 
     <!-- INPUT PANEL -->
     <div class="card">
-      <div class="card-hd">
-        <div class="card-icon ci-navy">🔧</div>
-        <div class="card-title">Bond Parameters</div>
-        <div class="card-tag">6 Inputs</div>
+      <div class="card-head">
+        <div class="ch-icon navy">🔧</div>
+        <div class="ch-title">Bond Parameters</div>
+        <div class="ch-tag">6 Inputs</div>
       </div>
-      <div class="card-bd">
-
-        <div class="preset-label">Quick Scenarios</div>
+      <div class="card-body">
+        <div class="preset-lbl">Quick Scenarios</div>
         <div class="preset-row">
-          <button class="pbtn safe" onclick="loadScenario('safe')">🟢 Safe Scenario</button>
-          <button class="pbtn risky" onclick="loadScenario('risky')">🔴 Risky Scenario</button>
+          <button class="scbtn sc-safe"  onclick="loadScenario('safe')">🟢 Safe Scenario</button>
+          <button class="scbtn sc-risky" onclick="loadScenario('risky')">🔴 Risky Scenario</button>
         </div>
 
-        <div class="fgrow">
-          <div class="fg">
+        <div class="field-row">
+          <div class="field">
             <label data-tip="Principal amount of the bond">💰 Face Value (₹)</label>
-            <input type="number" id="fv" value="10000" min="100" step="500"/>
+            <input type="number" id="i-fv"  value="10000" min="100" step="500"/>
           </div>
-          <div class="fg">
+          <div class="field">
             <label data-tip="Annual interest the bond pays">📈 Coupon Rate (%)</label>
-            <input type="number" id="cr" value="8" step="0.1"/>
+            <input type="number" id="i-cr"  value="8" step="0.1"/>
           </div>
         </div>
-
-        <div class="fgrow">
-          <div class="fg">
-            <label data-tip="Current prevailing market rate">🏛️ Market Rate (%)</label>
-            <input type="number" id="mr" value="9" step="0.1"/>
+        <div class="field-row">
+          <div class="field">
+            <label data-tip="Prevailing market interest rate">🏛️ Market Rate (%)</label>
+            <input type="number" id="i-mr"  value="9" step="0.1"/>
           </div>
-          <div class="fg">
+          <div class="field">
             <label data-tip="Annual consumer price inflation">🌡️ Inflation Rate (%)</label>
-            <input type="number" id="ir" value="6.5" step="0.1"/>
+            <input type="number" id="i-ir"  value="6.5" step="0.1"/>
+          </div>
+        </div>
+        <div class="field-row">
+          <div class="field">
+            <label data-tip="Years until bond matures">📅 Maturity (yrs)</label>
+            <input type="number" id="i-mat" value="5" min="1" max="30"/>
+          </div>
+          <div class="field">
+            <label data-tip="Years the bond cannot be called early">🛡️ Call Protection</label>
+            <input type="number" id="i-cp"  value="2" min="0"/>
           </div>
         </div>
 
-        <div class="fgrow">
-          <div class="fg">
-            <label data-tip="Years until bond matures">📅 Years to Maturity</label>
-            <input type="number" id="mat" value="5" min="1" max="30"/>
-          </div>
-          <div class="fg">
-            <label data-tip="Years the bond cannot be called">🛡️ Call Protection (yrs)</label>
-            <input type="number" id="cp" value="2" min="0"/>
-          </div>
-        </div>
-
-        <button class="calc-btn" id="calcbtn" onclick="calculate()">
-          ⚡ Calculate Risk Analysis
-        </button>
+        <button class="run-btn" id="run-btn" onclick="run()">⚡ Calculate Risk Analysis</button>
       </div>
     </div>
 
     <!-- RESULTS PANEL -->
     <div class="card">
-      <div class="card-hd">
-        <div class="card-icon ci-gold">📋</div>
-        <div class="card-title">Key Calculations</div>
+      <div class="card-head">
+        <div class="ch-icon gold">📋</div>
+        <div class="ch-title">Key Calculations</div>
       </div>
-      <div class="card-bd">
-
-        <div class="tiles">
+      <div class="card-body">
+        <div class="tile-grid">
           <div class="tile">
             <div class="tile-lbl">Annual Coupon</div>
-            <div class="tile-val" id="t-coupon">—</div>
+            <div class="tile-val" id="r-coupon">—</div>
             <div class="tile-unit">₹ per year</div>
           </div>
           <div class="tile">
             <div class="tile-lbl">Real Return</div>
-            <div class="tile-val" id="t-real">—</div>
+            <div class="tile-val" id="r-real">—</div>
             <div class="tile-unit">After inflation</div>
           </div>
           <div class="tile">
             <div class="tile-lbl">Rate Spread</div>
-            <div class="tile-val" id="t-spread">—</div>
+            <div class="tile-val" id="r-spread">—</div>
             <div class="tile-unit">Market − Coupon</div>
           </div>
           <div class="tile">
             <div class="tile-lbl">Face Value</div>
-            <div class="tile-val" id="t-fv">—</div>
+            <div class="tile-val" id="r-fv">—</div>
             <div class="tile-unit">₹ principal</div>
           </div>
           <div class="tile">
-            <div class="tile-lbl">Maturity</div>
-            <div class="tile-val" id="t-mat">—</div>
-            <div class="tile-unit">years</div>
+            <div class="tile-lbl">Duration</div>
+            <div class="tile-val" id="r-dur">—</div>
+            <div class="tile-unit">years (approx)</div>
           </div>
           <div class="tile">
-            <div class="tile-lbl">Total Income</div>
-            <div class="tile-val" id="t-total">—</div>
-            <div class="tile-unit">₹ total coupons</div>
+            <div class="tile-lbl">Total Coupons</div>
+            <div class="tile-val" id="r-total">—</div>
+            <div class="tile-unit">₹ over maturity</div>
           </div>
         </div>
 
         <!-- Overall Risk -->
-        <div class="overall-box" id="ov-box">
+        <div class="ov-box" id="ov-box">
           <div class="ov-left">
-            <div class="ov-label">Overall Risk Level</div>
+            <div class="ov-eyebrow">Overall Risk Level</div>
             <div class="ov-value" id="ov-val">Run Analysis</div>
-            <div class="ov-score" id="ov-sc"></div>
-            <div class="ov-score-bar">
-              <div class="osb" id="osb0"></div>
-              <div class="osb" id="osb1"></div>
-              <div class="osb" id="osb2"></div>
-              <div class="osb" id="osb3"></div>
-              <div class="osb" id="osb4"></div>
-              <div class="osb" id="osb5"></div>
+            <div class="ov-sub"   id="ov-sub"></div>
+            <div class="ov-bar">
+              <div class="ob" id="ob0"></div><div class="ob" id="ob1"></div>
+              <div class="ob" id="ob2"></div><div class="ob" id="ob3"></div>
+              <div class="ob" id="ob4"></div><div class="ob" id="ob5"></div>
             </div>
           </div>
-          <div class="ov-icon" id="ov-ico">🔍</div>
+          <div class="ov-emoji" id="ov-ico">🔍</div>
         </div>
-
       </div>
     </div>
-  </div><!-- /row1 -->
 
-  <div class="sdiv"></div>
+  </div><!-- /r1 -->
 
-  <!-- ROW 2: RISK METERS (2 cards, 2 risks each) -->
-  <div class="row2">
+  <div class="sep"></div>
 
-    <!-- CARD: Interest Rate + Inflation -->
+  <!-- ROW 2 ─ Risk Meters (2 + 2) -->
+  <div class="r2">
+
+    <!-- Market Risks -->
     <div class="card">
-      <div class="card-hd">
-        <div class="card-icon ci-navy">📉</div>
-        <div class="card-title">Market Risks</div>
-        <div class="card-tag">2 Risk Types</div>
+      <div class="card-head">
+        <div class="ch-icon navy">📉</div>
+        <div class="ch-title">Market Risks</div>
+        <div class="ch-tag">2 Risk Types</div>
       </div>
-      <div class="card-bd">
+      <div class="card-body">
 
-        <!-- Interest Rate Risk -->
-        <div class="risk-meter" style="animation-delay:.05s">
-          <div class="rm-top">
+        <div class="rm-item" style="animation-delay:.04s">
+          <div class="rm-header">
             <div class="rm-left">
-              <div class="rm-name"><span class="ico">📉</span> Interest Rate Risk</div>
-              <div class="rm-desc">"When market interest rates rise, bond prices fall"</div>
+              <div class="rm-name">📉 Interest Rate Risk</div>
+              <div class="rm-quote">"When market interest rates rise, bond prices fall"</div>
             </div>
-            <div class="risk-badge rb-nd" id="b-ir">—</div>
+            <div class="rm-badge rb-nd" id="b-ir">—</div>
           </div>
           <div class="track"><div class="fill" id="f-ir"></div></div>
         </div>
 
-        <!-- Inflation Risk -->
-        <div class="risk-meter" style="animation-delay:.13s">
-          <div class="rm-top">
+        <div class="rm-item" style="animation-delay:.12s">
+          <div class="rm-header">
             <div class="rm-left">
-              <div class="rm-name"><span class="ico">🌡️</span> Inflation Risk</div>
-              <div class="rm-desc">"Inflation reduces the real value of returns"</div>
+              <div class="rm-name">🌡️ Inflation Risk</div>
+              <div class="rm-quote">"Inflation reduces the real value of returns"</div>
             </div>
-            <div class="risk-badge rb-nd" id="b-infl">—</div>
+            <div class="rm-badge rb-nd" id="b-infl">—</div>
           </div>
           <div class="track"><div class="fill" id="f-infl"></div></div>
         </div>
@@ -771,35 +686,33 @@ footer {
       </div>
     </div>
 
-    <!-- CARD: Callable + Reinvestment -->
+    <!-- Structural Risks -->
     <div class="card">
-      <div class="card-hd">
-        <div class="card-icon ci-gold">⚙️</div>
-        <div class="card-title">Structural Risks</div>
-        <div class="card-tag">2 Risk Types</div>
+      <div class="card-head">
+        <div class="ch-icon gold">⚙️</div>
+        <div class="ch-title">Structural Risks</div>
+        <div class="ch-tag">2 Risk Types</div>
       </div>
-      <div class="card-bd">
+      <div class="card-body">
 
-        <!-- Callable Bond Risk -->
-        <div class="risk-meter" style="animation-delay:.05s">
-          <div class="rm-top">
+        <div class="rm-item" style="animation-delay:.04s">
+          <div class="rm-header">
             <div class="rm-left">
-              <div class="rm-name"><span class="ico">📞</span> Callable Bond Risk</div>
-              <div class="rm-desc">"Issuer may redeem the bond early when interest rates fall"</div>
+              <div class="rm-name">📞 Callable Bond Risk</div>
+              <div class="rm-quote">"Issuer may redeem the bond early when interest rates fall"</div>
             </div>
-            <div class="risk-badge rb-nd" id="b-call">—</div>
+            <div class="rm-badge rb-nd" id="b-call">—</div>
           </div>
           <div class="track"><div class="fill" id="f-call"></div></div>
         </div>
 
-        <!-- Reinvestment Risk -->
-        <div class="risk-meter" style="animation-delay:.13s">
-          <div class="rm-top">
+        <div class="rm-item" style="animation-delay:.12s">
+          <div class="rm-header">
             <div class="rm-left">
-              <div class="rm-name"><span class="ico">🔄</span> Reinvestment Risk</div>
-              <div class="rm-desc">"Future income may decrease when reinvested at lower rates"</div>
+              <div class="rm-name">🔄 Reinvestment Risk</div>
+              <div class="rm-quote">"Future income may decrease when reinvested at lower rates"</div>
             </div>
-            <div class="risk-badge rb-nd" id="b-re">—</div>
+            <div class="rm-badge rb-nd" id="b-re">—</div>
           </div>
           <div class="track"><div class="fill" id="f-re"></div></div>
         </div>
@@ -807,264 +720,440 @@ footer {
       </div>
     </div>
 
-  </div><!-- /row2 -->
+  </div><!-- /r2 -->
 
-  <div class="sdiv"></div>
+  <div class="sep"></div>
 
-  <!-- ROW 3: INSIGHT -->
-  <div class="row3">
-    <div class="insight-wrap">
-      <div class="insight-chip">💡 Smart Insight</div>
-      <div class="insight-title" id="ins-title">📊 Analysis Summary</div>
-      <div class="insight-body" id="ins-body">
-        Configure your bond parameters above and click <strong>Calculate Risk Analysis</strong> to receive a personalized, auto-generated risk assessment covering all four risk dimensions.
+  <!-- ROW 3 ─ Chart + Duration -->
+  <div class="r3">
+
+    <!-- CHART PANEL -->
+    <div class="card">
+      <div class="card-head">
+        <div class="ch-icon blue">📈</div>
+        <div class="ch-title">Bond Price Sensitivity to Interest Rates</div>
+      </div>
+      <div class="card-body">
+        <div class="chart-wrap"><canvas id="myChart"></canvas></div>
+        <div class="chart-foot">
+          <div class="cf-item"><div class="cf-dot" style="background:#1e3354;"></div>Bond Price Curve</div>
+          <div class="cf-item"><div class="cf-dot" style="background:#c4862a;border:1px dashed #c4862a;"></div>Current Market Rate</div>
+          <div class="cf-item" style="color:var(--ink3);font-size:.65rem;margin-left:auto;">
+            💡 Price decreases as interest rates increase
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- DURATION PANEL -->
+    <div class="card">
+      <div class="card-head">
+        <div class="ch-icon green">⏱️</div>
+        <div class="ch-title">Duration Analysis</div>
+      </div>
+      <div class="card-body">
+
+        <div class="dur-display">
+          <div>
+            <div class="dur-number" id="d-num">—</div>
+            <div class="dur-unit">Years Duration</div>
+          </div>
+          <div class="dur-note">
+            <strong>What is Duration?</strong><br/>
+            Duration measures how sensitive a bond's price is to changes in interest rates.<br/><br/>
+            <strong>Higher duration = higher sensitivity</strong> to interest rate changes.<br/>
+            A 1% rise in rates drops price by roughly <strong id="d-pct">—</strong>.
+          </div>
+        </div>
+
+        <div class="dur-scale">
+          <div class="ds-label">Duration Risk Scale</div>
+          <div class="ds-track">
+            <div class="ds-thumb" id="d-thumb" style="left:0%"></div>
+          </div>
+          <div class="ds-marks">
+            <span class="ds-mark" style="color:var(--low);">Low (1–3 yrs)</span>
+            <span class="ds-mark" style="color:var(--mod);">Moderate (4–7)</span>
+            <span class="ds-mark" style="color:var(--hi);">High (8+ yrs)</span>
+          </div>
+        </div>
+
+        <!-- Duration risk badge -->
+        <div style="margin-top:16px;padding:12px 14px;background:var(--surf2);border:1px solid var(--border);border-radius:var(--rs);">
+          <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:6px;">
+            <span style="font-size:.7rem;font-weight:700;color:var(--ink2);">Duration Risk Level</span>
+            <div class="rm-badge rb-nd" id="b-dur" style="margin-left:0;">—</div>
+          </div>
+          <div style="font-size:.7rem;color:var(--ink3);font-style:italic;line-height:1.5;" id="d-desc">
+            "Higher duration means higher sensitivity to interest rate changes"
+          </div>
+        </div>
+
+      </div>
+    </div>
+
+  </div><!-- /r3 -->
+
+  <div class="sep"></div>
+
+  <!-- ROW 4 ─ Insight -->
+  <div class="r4">
+    <div class="insight-panel">
+      <div class="ip-chip">💡 Smart Insight</div>
+      <div class="ip-heading" id="ins-head">📊 Analysis Summary</div>
+      <div class="ip-body" id="ins-body">
+        Configure your bond parameters above and click <strong>Calculate Risk Analysis</strong> to receive a personalized risk assessment covering all four risk dimensions plus duration analysis.
       </div>
     </div>
   </div>
 
 </div><!-- /wrap -->
 
-<footer>
-  Bond Risk Dashboard · BBM 1st Year Financial Management Presentation · For Educational Purposes Only
+<footer class="site-footer">
+  Bond Risk Dashboard &nbsp;·&nbsp; BBM 1st Year Financial Management &nbsp;·&nbsp; For Educational Purposes Only
 </footer>
 
+<!-- ═══════════════════════════════════════════════════
+     JAVASCRIPT
+═══════════════════════════════════════════════════ -->
 <script>
-/* ═══════════════════════════════════════════
-   SCENARIOS
-═══════════════════════════════════════════ */
-const SCENARIOS = {
-  safe:  { fv:10000, cr:9,  mr:7,   ir:3.5, mat:3,  cp:3 },
-  risky: { fv:10000, cr:6.5,mr:10.5,ir:8.5, mat:12, cp:1 }
+
+// ════════════════════════════════════
+// SCENARIOS
+// ════════════════════════════════════
+const SCENE = {
+  safe:  { fv:10000, cr:9.5, mr:7,   ir:3,   mat:3,  cp:3  },
+  risky: { fv:10000, cr:6,   mr:11,  ir:9,   mat:14, cp:1  }
 };
 
-function loadScenario(key) {
-  const s = SCENARIOS[key];
-  ['fv','cr','mr','ir','mat','cp'].forEach(id => {
+function loadScenario(k) {
+  const s = SCENE[k];
+  const ids = ['i-fv','i-cr','i-mr','i-ir','i-mat','i-cp'];
+  const vals = [s.fv, s.cr, s.mr, s.ir, s.mat, s.cp];
+  ids.forEach((id, i) => {
     const el = document.getElementById(id);
-    el.value = s[id];
-    // Flash highlight
-    el.style.transition = 'background 0.4s, border-color 0.4s';
-    el.style.background  = key === 'safe'
-      ? 'rgba(26,138,90,0.08)'
-      : 'rgba(176,26,26,0.07)';
-    el.style.borderColor = key === 'safe' ? 'rgba(26,138,90,0.4)' : 'rgba(176,26,26,0.35)';
-    setTimeout(() => {
-      el.style.background  = '';
-      el.style.borderColor = '';
-    }, 800);
+    el.value = vals[i];
+    const c = k === 'safe' ? 'rgba(22,118,79,0.09)' : 'rgba(153,27,27,0.08)';
+    const b = k === 'safe' ? 'rgba(22,118,79,0.35)' : 'rgba(153,27,27,0.3)';
+    el.style.background   = c;
+    el.style.borderColor  = b;
+    el.style.transition   = 'all .45s';
+    setTimeout(() => { el.style.background = ''; el.style.borderColor = ''; }, 850);
   });
-  calculate();
+  run();
 }
 
-/* ═══════════════════════════════════════════
-   CORE CALCULATION
-═══════════════════════════════════════════ */
-function calculate() {
-  // Animate button
-  const btn = document.getElementById('calcbtn');
-  btn.innerHTML = '<span class="spin-ico">⚙️</span> Calculating…';
+// ════════════════════════════════════
+// MAIN CALC
+// ════════════════════════════════════
+let myChart = null;
+
+function run() {
+  const btn = document.getElementById('run-btn');
+  btn.innerHTML = '<span class="spin">⚙️</span> Calculating…';
   btn.disabled = true;
   setTimeout(() => {
     _calc();
     btn.innerHTML = '⚡ Calculate Risk Analysis';
     btn.disabled  = false;
-  }, 500);
+  }, 480);
 }
 
+function v(id) { return parseFloat(document.getElementById(id).value) || 0; }
+
 function _calc() {
-  // Read inputs
-  const fv  = parseFloat(document.getElementById('fv').value)  || 10000;
-  const cr  = parseFloat(document.getElementById('cr').value)  || 0;
-  const mr  = parseFloat(document.getElementById('mr').value)  || 0;
-  const ir  = parseFloat(document.getElementById('ir').value)  || 0;
-  const mat = parseFloat(document.getElementById('mat').value) || 1;
-  const cp  = parseFloat(document.getElementById('cp').value)  || 0;
+  const fv  = v('i-fv')  || 10000;
+  const cr  = v('i-cr');
+  const mr  = v('i-mr');
+  const ir  = v('i-ir');
+  const mat = v('i-mat') || 1;
+  const cp  = v('i-cp');
 
-  // Basic calcs
-  const coupon    = fv * cr / 100;
-  const realRet   = cr - ir;
-  const spread    = mr - cr;
-  const totalInc  = coupon * mat;
+  // Basic
+  const coupon = fv * cr / 100;
+  const rr     = cr - ir;
+  const spread = mr - cr;
+  const total  = coupon * mat;
+  const dur    = mat;   // simple approximation
 
-  // ── RISK 1: Interest Rate Risk
-  const rIR = mr > cr ? 'high' : mr === cr ? 'mod' : 'low';
+  // ── Risk Logic ──
+  // 1. Interest Rate Risk
+  const rIR   = mr > cr ? 'high' : mr === cr ? 'mod' : 'low';
 
-  // ── RISK 2: Inflation Risk
-  const rInfl = realRet < 0 ? 'high' : realRet <= 2 ? 'mod' : 'low';
+  // 2. Inflation Risk
+  const rInfl = rr < 0 ? 'high' : rr <= 2 ? 'mod' : 'low';
 
-  // ── RISK 3: Callable Bond Risk
+  // 3. Callable Bond Risk
   let rCall;
   if (mr < cr && mat > cp)  rCall = 'high';
   else if (mat <= cp)        rCall = 'low';
   else                       rCall = 'mod';
 
-  // ── RISK 4: Reinvestment Risk
+  // 4. Reinvestment Risk
   const rRe = mr < cr ? 'high' : 'low';
 
-  // Score system: low=1, mod=2, high=3
-  const sc   = { low:1, mod:2, high:3 };
-  const risks = [rIR, rInfl, rCall, rRe];
-  const avg  = risks.reduce((a, r) => a + sc[r], 0) / risks.length;
-  const ov   = avg <= 1.5 ? 'low' : avg <= 2.3 ? 'mod' : 'high';
+  // Scoring
+  const sc  = { low:1, mod:2, high:3 };
+  const avg = [rIR, rInfl, rCall, rRe].reduce((a,r) => a + sc[r], 0) / 4;
+  const ov  = avg <= 1.5 ? 'low' : avg <= 2.3 ? 'mod' : 'high';
 
-  // ── Update result tiles
-  setTile('t-coupon', '₹' + fmt(coupon));
-  setTile('t-real',   realRet.toFixed(2) + '%');
-  setTile('t-spread', (spread >= 0 ? '+' : '') + spread.toFixed(2) + '%');
-  setTile('t-fv',     '₹' + fmt(fv));
-  setTile('t-mat',    mat + ' yrs');
-  setTile('t-total',  '₹' + fmt(totalInc));
+  // Duration risk label
+  const rDur = dur <= 3 ? 'low' : dur <= 7 ? 'mod' : 'high';
 
-  // Color real return
-  const rrEl = document.getElementById('t-real');
-  rrEl.style.color = realRet < 0 ? 'var(--hi)' : realRet <= 2 ? 'var(--mod)' : 'var(--low)';
-  const spEl = document.getElementById('t-spread');
-  spEl.style.color = spread > 0 ? 'var(--hi)' : spread < 0 ? 'var(--low)' : 'var(--mod)';
+  // ── Update tiles ──
+  setTile('r-coupon', '₹' + fmt(coupon));
+  setTile('r-real',   rr.toFixed(2) + '%');
+  setTile('r-spread', (spread>=0?'+':'') + spread.toFixed(2) + '%');
+  setTile('r-fv',     '₹' + fmt(fv));
+  setTile('r-dur',    dur + ' yrs');
+  setTile('r-total',  '₹' + fmt(total));
 
-  // ── Update meters
-  const PCT = { low:25, mod:62, high:91 };
+  document.getElementById('r-real').style.color =
+    rr < 0 ? 'var(--hi)' : rr <= 2 ? 'var(--mod)' : 'var(--low)';
+  document.getElementById('r-spread').style.color =
+    spread > 0 ? 'var(--hi)' : spread < 0 ? 'var(--low)' : 'var(--mod)';
+
+  // ── Risk meters ──
+  const PCT = { low:24, mod:61, high:90 };
   setMeter('ir',   rIR,   PCT[rIR]);
   setMeter('infl', rInfl, PCT[rInfl]);
   setMeter('call', rCall, PCT[rCall]);
   setMeter('re',   rRe,   PCT[rRe]);
 
-  // ── Overall
+  // ── Overall ──
   updateOverall(ov, avg);
 
-  // ── Insight
-  buildInsight(cr, mr, ir, realRet, rIR, rInfl, rCall, rRe, ov, coupon, mat, fv, spread, cp);
+  // ── Duration panel ──
+  updateDuration(dur, rDur);
+
+  // ── Chart ──
+  drawChart(fv, cr, mr, mat);
+
+  // ── Insight ──
+  buildInsight(cr, mr, ir, rr, rIR, rInfl, rCall, rRe, rDur, ov, coupon, mat, total, spread, cp, dur);
 }
 
-/* ═══════════════════════════════════════════
-   HELPERS
-═══════════════════════════════════════════ */
+// ════════════════════════════════════
+// HELPERS
+// ════════════════════════════════════
 function setMeter(key, lvl, pct) {
-  const badge = document.getElementById('b-' + key);
-  const fill  = document.getElementById('f-' + key);
-  const labels = { low:'LOW 🟢', mod:'MODERATE 🟡', high:'HIGH 🔴' };
-  const css    = { low:'rb-low',   mod:'rb-mod',      high:'rb-high' };
-  const fcss   = { low:'fill-low', mod:'fill-mod',    high:'fill-high' };
-  badge.className   = 'risk-badge ' + css[lvl];
-  badge.textContent = labels[lvl];
-  fill.className    = 'fill ' + fcss[lvl];
-  setTimeout(() => fill.style.width = pct + '%', 100);
+  const b  = document.getElementById('b-' + key);
+  const f  = document.getElementById('f-' + key);
+  const lm = { low:'LOW 🟢', mod:'MODERATE 🟡', high:'HIGH 🔴' };
+  const cm = { low:'rb-low',  mod:'rb-mod',       high:'rb-high' };
+  const fm = { low:'f-low',   mod:'f-mod',        high:'f-high' };
+  b.className   = 'rm-badge ' + cm[lvl];
+  b.textContent = lm[lvl];
+  f.className   = 'fill ' + fm[lvl];
+  setTimeout(() => f.style.width = pct + '%', 100);
 }
 
 function updateOverall(lvl, avg) {
-  const labels = { low:'LOW RISK',  mod:'MODERATE RISK', high:'HIGH RISK' };
-  const colors = { low:'var(--low-l)', mod:'var(--mod-l)', high:'var(--hi-l)' };
-  const icons  = { low:'🟢', mod:'🟡', high:'🔴' };
-  const box    = document.getElementById('ov-box');
-  const valEl  = document.getElementById('ov-val');
+  const lv = { low:'LOW RISK',   mod:'MODERATE RISK', high:'HIGH RISK' };
+  const cl = { low:'var(--low-l)', mod:'var(--mod-l)', high:'var(--hi-l)' };
+  const ic = { low:'🟢',           mod:'🟡',            high:'🔴' };
+  const vEl = document.getElementById('ov-val');
+  vEl.textContent = lv[lvl]; vEl.style.color = cl[lvl];
+  document.getElementById('ov-ico').textContent = ic[lvl];
+  document.getElementById('ov-sub').textContent =
+    `Score: ${avg.toFixed(2)} / 3.00  ·  4 risk dimensions`;
 
-  valEl.textContent = labels[lvl];
-  valEl.style.color = colors[lvl];
-  document.getElementById('ov-ico').textContent = icons[lvl];
-  document.getElementById('ov-sc').textContent  =
-    `Score: ${avg.toFixed(2)} / 3.00 · Based on 4 risk dimensions`;
-
-  // Score bar
   const filled = Math.round((avg / 3) * 6);
-  for (let i = 0; i < 6; i++) {
-    const t = document.getElementById('osb' + i);
-    t.style.background = i < filled ? colors[lvl] : 'rgba(255,255,255,0.1)';
+  for (let i=0;i<6;i++) {
+    document.getElementById('ob'+i).style.background =
+      i < filled ? cl[lvl] : 'rgba(255,255,255,0.1)';
   }
+  const box = document.getElementById('ov-box');
+  const bl  = {low:'rgba(34,196,122,.3)',mod:'rgba(245,158,11,.3)',high:'rgba(244,63,94,.3)'};
+  box.style.boxShadow = `inset 4px 0 0 ${bl[lvl]}`;
+  box.classList.toggle('pulse-hi', lvl === 'high');
+}
 
-  // Border & pulse
-  const bc = {
-    low:  'rgba(34,201,126,0.3)',
-    mod:  'rgba(245,158,11,0.3)',
-    high: 'rgba(244,63,94,0.3)'
+function updateDuration(dur, lvl) {
+  document.getElementById('d-num').textContent  = dur;
+  document.getElementById('d-pct').textContent  = (dur * 0.9).toFixed(1) + '%';
+  const pct = Math.min(Math.max((dur - 1) / 19, 0), 1) * 100;
+  setTimeout(() => {
+    document.getElementById('d-thumb').style.left = pct + '%';
+  }, 100);
+  const cl = { low:'var(--low)', mod:'var(--mod)', high:'var(--hi)' };
+  document.getElementById('d-num').style.color = cl[lvl];
+  setMeter('dur', lvl, { low:24, mod:61, high:90 }[lvl]);
+  const desc = {
+    low:  `Short duration of ${dur} years — low sensitivity to interest rate movements.`,
+    mod:  `Medium duration of ${dur} years — moderate sensitivity; a 1% rate change causes noticeable price movement.`,
+    high: `Long duration of ${dur} years — high sensitivity; even small rate changes cause large price swings.`
   };
-  box.style.borderLeft = `4px solid ${bc[lvl]}`;
-  box.classList.toggle('pulse-red', lvl === 'high');
+  document.getElementById('d-desc').textContent = '"' + desc[lvl] + '"';
 }
 
 function setTile(id, val) {
   const el = document.getElementById(id);
-  el.style.transition = 'opacity 0.3s, transform 0.3s';
-  el.style.opacity = '0';
-  el.style.transform = 'translateY(6px)';
+  el.style.transition = 'opacity .28s, transform .28s';
+  el.style.opacity = '0'; el.style.transform = 'translateY(5px)';
   setTimeout(() => {
     el.textContent = val;
-    el.style.opacity = '1';
-    el.style.transform = 'translateY(0)';
+    el.style.opacity = '1'; el.style.transform = 'translateY(0)';
   }, 80);
 }
 
 function fmt(n) {
-  if (n >= 1e7) return (n/1e7).toFixed(2) + ' Cr';
-  if (n >= 1e5) return (n/1e5).toFixed(2) + ' L';
-  return n.toLocaleString('en-IN', { maximumFractionDigits: 0 });
+  if (n >= 1e7) return (n/1e7).toFixed(2)+'Cr';
+  if (n >= 1e5) return (n/1e5).toFixed(2)+'L';
+  return n.toLocaleString('en-IN', { maximumFractionDigits:0 });
 }
 
-/* ═══════════════════════════════════════════
-   SMART INSIGHT GENERATOR
-═══════════════════════════════════════════ */
-function buildInsight(cr, mr, ir, rr, rIR, rInfl, rCall, rRe, ov, coupon, mat, fv, spread, cp) {
-  const names = { ir:'Interest Rate', infl:'Inflation', call:'Callable Bond', re:'Reinvestment' };
-  const levels = { ir:rIR, infl:rInfl, call:rCall, re:rRe };
-  const highs  = Object.keys(levels).filter(k => levels[k] === 'high');
-  const mods   = Object.keys(levels).filter(k => levels[k] === 'mod');
-  const lows   = Object.keys(levels).filter(k => levels[k] === 'low');
+// ════════════════════════════════════
+// CHART — Bond Price Sensitivity
+// ════════════════════════════════════
+function bondPx(fv, rate, years) {
+  if (Math.abs(rate) < 0.0001) return fv;
+  return fv / Math.pow(1 + rate / 100, years);
+}
 
-  // Title
-  let title;
-  if (ov === 'high')       title = '🔴 High Risk Bond — Investor Caution Required';
-  else if (ov === 'mod')   title = '🟡 Moderate Risk Bond — Monitor Carefully';
-  else                     title = '🟢 Low Risk Bond — Stable Investment Profile';
+function drawChart(fv, cr, mr, mat) {
+  const ctx   = document.getElementById('myChart').getContext('2d');
+  const start = Math.max(0.1, mr - 4);
+  const end   = mr + 7;
+  const lbls  = [], prices = [];
 
-  // Opening line
+  for (let r = start; r <= end + 0.01; r += 0.25) {
+    const rr = parseFloat(r.toFixed(2));
+    lbls.push(rr.toFixed(2) + '%');
+    prices.push(parseFloat(bondPx(fv, rr, mat).toFixed(2)));
+  }
+
+  const idx  = lbls.findIndex(l => parseFloat(l) >= mr);
+  const mrPx = prices.map((p,i) => i === idx ? p : null);
+
+  if (myChart) myChart.destroy();
+
+  myChart = new Chart(ctx, {
+    type: 'line',
+    data: {
+      labels: lbls,
+      datasets: [
+        {
+          label: 'Bond Price (₹)', data: prices,
+          borderColor: '#1e3354',
+          backgroundColor: ctx => {
+            const g = ctx.chart.ctx.createLinearGradient(0,0,0,260);
+            g.addColorStop(0, 'rgba(30,51,84,0.14)');
+            g.addColorStop(1, 'rgba(30,51,84,0)');
+            return g;
+          },
+          borderWidth: 2.2, pointRadius: 0, pointHoverRadius: 5,
+          pointHoverBackgroundColor: '#1e3354',
+          tension: 0.4, fill: true,
+        },
+        {
+          label: 'Current Market Rate', data: mrPx,
+          borderColor: '#c4862a', backgroundColor: '#c4862a',
+          pointRadius: prices.map((_,i) => i === idx ? 9 : 0),
+          pointHoverRadius: 11,
+          showLine: false, spanGaps: false,
+        }
+      ]
+    },
+    options: {
+      responsive: true, maintainAspectRatio: false,
+      interaction: { mode:'index', intersect:false },
+      plugins: {
+        legend: { display: false },
+        tooltip: {
+          backgroundColor: '#111827',
+          borderColor: 'rgba(229,233,239,0.2)', borderWidth: 1,
+          titleColor: '#9ca3af', bodyColor: '#f9fafb', padding: 10,
+          callbacks: {
+            label: c => c.datasetIndex === 0
+              ? ` ₹${c.raw.toLocaleString('en-IN',{maximumFractionDigits:0})}`
+              : c.raw != null ? ` Market: ₹${c.raw.toLocaleString('en-IN',{maximumFractionDigits:0})}` : null
+          }
+        }
+      },
+      scales: {
+        x: {
+          ticks: { color:'#9ca3af', font:{size:10,family:'Outfit'}, maxTicksLimit:11 },
+          grid:  { color:'rgba(17,24,39,0.05)' },
+          border:{ color:'rgba(17,24,39,0.08)' },
+          title: { display:true, text:'Market Interest Rate (%)', color:'#6b7280', font:{size:11,family:'Outfit'} }
+        },
+        y: {
+          ticks: {
+            color:'#9ca3af', font:{size:10,family:'Outfit'},
+            callback: v => '₹' + v.toLocaleString('en-IN',{maximumFractionDigits:0})
+          },
+          grid:  { color:'rgba(17,24,39,0.05)' },
+          border:{ color:'rgba(17,24,39,0.08)' },
+          title: { display:true, text:'Estimated Bond Price (₹)', color:'#6b7280', font:{size:11,family:'Outfit'} }
+        }
+      },
+      animation: { duration:900, easing:'easeInOutQuart' }
+    }
+  });
+}
+
+// ════════════════════════════════════
+// INSIGHT GENERATOR
+// ════════════════════════════════════
+function buildInsight(cr, mr, ir, rr, rIR, rInfl, rCall, rRe, rDur, ov, coupon, mat, total, spread, cp, dur) {
+  const riskNames = { ir:'Interest Rate', infl:'Inflation', call:'Callable Bond', re:'Reinvestment' };
+  const allR = { ir:rIR, infl:rInfl, call:rCall, re:rRe };
+
+  const highs = Object.keys(allR).filter(k => allR[k]==='high').map(k=>riskNames[k]);
+  const mods  = Object.keys(allR).filter(k => allR[k]==='mod').map(k=>riskNames[k]);
+  const lows  = Object.keys(allR).filter(k => allR[k]==='low').map(k=>riskNames[k]);
+
+  // Heading
+  let head;
+  if (ov === 'high')     head = '🔴 High Risk Bond — Investor Caution Required';
+  else if (ov === 'mod') head = '🟡 Moderate Risk Bond — Monitor Key Indicators';
+  else                   head = '🟢 Stable Bond — Low Overall Risk Profile';
+
+  // Body
   let body = '';
+
   if (ov === 'high')
     body += `This bond carries <strong>significant overall risk</strong>. `;
   else if (ov === 'mod')
-    body += `This bond presents a <strong>balanced risk-return profile</strong>. `;
+    body += `This bond presents a <strong>moderate risk-return profile</strong>. `;
   else
     body += `This bond appears <strong>stable with low overall risk</strong>. `;
 
-  // High risks
-  if (highs.length > 0) {
-    body += `High risk areas: ${highs.map(k => `<span class="itag red">${names[k]}</span>`).join(' ')}. `;
-    if (highs.includes('ir'))
-      body += `Market rate (${mr}%) exceeds coupon (${cr}%) by <strong>${Math.abs(spread).toFixed(2)}%</strong> — this bond trades at a <strong>discount</strong>. `;
-    if (highs.includes('infl'))
-      body += `Real return is <strong>negative (${rr.toFixed(2)}%)</strong> — inflation at ${ir}% is eroding your purchasing power. `;
-    if (highs.includes('call'))
-      body += `With market rates below coupon and <strong>${mat - cp} years</strong> beyond call protection, the issuer has strong incentive to redeem early. `;
-    if (highs.includes('re'))
-      body += `Falling market rates mean coupon payments reinvested at <strong>lower yields</strong> — total return will be less than expected. `;
-  }
+  if (highs.length)
+    body += `High risk: ${highs.map(h=>`<span class="itag itag-red">${h}</span>`).join('')}. `;
+  if (mods.length)
+    body += `Moderate risk: ${mods.map(m=>`<span class="itag itag-amber">${m}</span>`).join('')}. `;
+  if (lows.length && highs.length + mods.length > 0)
+    body += `Low risk: ${lows.map(l=>`<span class="itag itag-green">${l}</span>`).join('')}. `;
 
-  // Moderate risks
-  if (mods.length > 0) {
-    body += `Moderate risk areas: ${mods.map(k => `<span class="itag amber">${names[k]}</span>`).join(' ')}. `;
-  }
+  // Specific observations
+  if (rIR === 'high')
+    body += `Market rate (${mr}%) exceeds coupon (${cr}%) — bond trades at a <strong>discount</strong>. `;
+  if (rInfl === 'high')
+    body += `Real return is <strong>negative (${rr.toFixed(2)}%)</strong> — inflation is destroying purchasing power. `;
+  if (rCall === 'high' && mr < cr)
+    body += `With rates below coupon, issuer has incentive to <strong>call the bond early</strong>. `;
+  if (rRe === 'high')
+    body += `Falling market rates mean coupon payments are reinvested at <strong>lower yields</strong>. `;
+  if (rDur === 'high')
+    body += `<strong>High duration of ${dur} years</strong> increases sensitivity to interest rate changes. `;
+  else if (rDur === 'mod')
+    body += `Moderate duration of <strong>${dur} years</strong> — watch for rate movements. `;
 
-  // Positive notes
-  if (lows.length > 0 && (highs.length > 0 || mods.length > 0)) {
-    body += `Lower risk areas: ${lows.map(k => `<span class="itag green">${names[k]}</span>`).join(' ')}. `;
-  }
+  body += `Annual coupon income: <strong>₹${fmt(coupon)}</strong> · Total over ${mat} years: <strong>₹${fmt(total)}</strong>.`;
 
-  // Coupon income summary
-  body += `Annual coupon income of <strong>₹${fmt(coupon)}</strong> over <strong>${mat} years</strong> gives total coupon inflow of <strong>₹${fmt(coupon * mat)}</strong>`;
-
-  if (rr > 2)
-    body += `, with a healthy real return of <strong>${rr.toFixed(2)}%</strong> after inflation. ✅`;
-  else if (rr < 0)
-    body += `, but inflation wipes out this gain in real terms. ⚠️`;
-  else
-    body += `, but real returns remain thin. Monitor closely.`;
-
-  document.getElementById('ins-title').textContent = title;
-  document.getElementById('ins-body').innerHTML = body;
+  document.getElementById('ins-head').textContent = head;
+  document.getElementById('ins-body').innerHTML   = body;
 }
 
-/* ═══════════════════════════════════════════
-   INIT — run on page load with defaults
-═══════════════════════════════════════════ */
+// ════════════════════════════════════
+// INIT
+// ════════════════════════════════════
 window.addEventListener('load', () => {
-  setTimeout(calculate, 350);
+  // Draw an initial chart with defaults
+  drawChart(10000, 8, 9, 5);
+  setTimeout(run, 350);
 });
 </script>
 </body>
