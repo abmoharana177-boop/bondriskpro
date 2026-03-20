@@ -521,9 +521,9 @@ body {
             <div class="tile-unit">₹ principal</div>
           </div>
           <div class="tile">
-            <div class="tile-lbl">Duration</div>
+            <div class="tile-lbl">Est. Duration</div>
             <div class="tile-val" id="t-dur">—</div>
-            <div class="tile-unit">years (approx)</div>
+            <div class="tile-unit">years (Macaulay)</div>
           </div>
           <div class="tile">
             <div class="tile-lbl">Total Coupons</div>
@@ -653,13 +653,31 @@ body {
         <div class="dur-top">
           <div>
             <div class="dur-num" id="dur-num">—</div>
-            <div class="dur-unit">Years</div>
+            <div class="dur-unit">Estimated Duration</div>
+            <div style="font-size:.62rem;color:var(--muted);margin-top:4px;font-style:italic;" id="dur-formula">Maturity ÷ (1 + Market Rate)</div>
           </div>
           <div class="dur-note">
             <strong>What is Duration?</strong><br/>
-            Duration shows how sensitive a bond price is to interest rate changes.<br/><br/>
-            <strong>Higher duration = higher price sensitivity.</strong><br/>
+            Duration measures how <strong>sensitive</strong> a bond's price is to interest rate changes.<br/><br/>
+            <strong>Higher duration = higher risk</strong> when interest rates change.<br/>
             A 1% rate rise drops price by ~<strong id="dur-pct">—</strong>.
+          </div>
+        </div>
+
+        <div style="display:flex;gap:8px;margin-bottom:13px;flex-wrap:wrap;">
+          <div style="flex:1;min-width:120px;background:var(--surf);border:1px solid var(--border);border-radius:var(--rs);padding:9px 12px;">
+            <div style="font-size:.59rem;font-weight:700;color:var(--muted);text-transform:uppercase;letter-spacing:.07em;margin-bottom:3px;">Duration vs Maturity</div>
+            <div style="font-size:.76rem;color:var(--ink2);line-height:1.5;">
+              Duration is <strong>always less</strong> than maturity.<br/>
+              Higher market rate → shorter duration.
+            </div>
+          </div>
+          <div style="flex:1;min-width:120px;background:var(--surf);border:1px solid var(--border);border-radius:var(--rs);padding:9px 12px;">
+            <div style="font-size:.59rem;font-weight:700;color:var(--muted);text-transform:uppercase;letter-spacing:.07em;margin-bottom:3px;">Formula Used</div>
+            <div style="font-size:.76rem;color:var(--ink2);line-height:1.5;">
+              Duration = Maturity ÷ (1 + Market Rate)<br/>
+              <span style="color:var(--muted);">Simple Macaulay Approx.</span>
+            </div>
           </div>
         </div>
 
@@ -668,9 +686,9 @@ body {
           <div class="dur-thumb" id="dur-thumb"></div>
         </div>
         <div class="dur-marks">
-          <span class="dur-mark" style="color:var(--low);">Low (1–3 yrs)</span>
-          <span class="dur-mark" style="color:var(--mod);">Moderate (4–7)</span>
-          <span class="dur-mark" style="color:var(--hi);">High (8+)</span>
+          <span class="dur-mark" style="color:var(--low);">Low (0–3 yrs)</span>
+          <span class="dur-mark" style="color:var(--mod);">Moderate (3–6)</span>
+          <span class="dur-mark" style="color:var(--hi);">High (6+)</span>
         </div>
 
         <div class="dur-badge-box">
@@ -678,7 +696,7 @@ body {
             <span class="dur-badge-lbl">Duration Risk Level</span>
             <div class="badge b-nd" id="b-dur">—</div>
           </div>
-          <div class="dur-detail" id="dur-detail">"Higher duration means higher sensitivity to interest rate changes"</div>
+          <div class="dur-detail" id="dur-detail">"Duration measures how sensitive a bond's price is to interest rate changes."</div>
         </div>
       </div>
     </div>
@@ -760,7 +778,10 @@ function calculate() {
   const coupon = fv * cr / 100;
   const rr     = cr - ir;          // Real Return
   const spread = mr - cr;          // Rate Spread
-  const dur    = mat;              // Duration ≈ Years to Maturity
+  // Macaulay Duration approximation (simple, student-friendly)
+  // Formula: Duration = Maturity / (1 + MarketRate/100)
+  // Edge case: if market rate = 0, duration equals maturity
+  const dur = mr > 0 ? parseFloat((mat / (1 + mr / 100)).toFixed(2)) : mat;
   const total  = coupon * mat;
 
   /* 3. Risk Logic */
@@ -779,8 +800,8 @@ function calculate() {
   // Reinvestment Risk
   const rRe   = mr < cr ? 'hi' : 'low';
 
-  // Duration Risk
-  const rDur  = dur <= 3 ? 'low' : dur <= 7 ? 'mod' : 'hi';
+  // Duration Risk — thresholds adjusted for Macaulay approx (always < maturity)
+  const rDur  = dur <= 3 ? 'low' : dur <= 6 ? 'mod' : 'hi';
 
   /* 4. Overall score */
   const score = { low:1, mod:2, hi:3 };
@@ -792,7 +813,7 @@ function calculate() {
   el('t-real').textContent   = rr.toFixed(2) + '%';
   el('t-spread').textContent = (spread >= 0 ? '+' : '') + spread.toFixed(2) + '%';
   el('t-fv').textContent     = '₹' + rupees(fv);
-  el('t-dur').textContent    = dur + ' yrs';
+  el('t-dur').textContent    = dur.toFixed(2) + ' yrs';
   el('t-total').textContent  = '₹' + rupees(total);
 
   // Colour real return & spread
@@ -810,7 +831,7 @@ function calculate() {
   paintOverall(ov, avg);
 
   /* 8. Duration panel */
-  paintDuration(dur, rDur);
+  paintDuration(dur, rDur, mat, mr);
 
   /* 9. Chart */
   drawChart(fv, cr, mr, mat);
@@ -857,18 +878,25 @@ function paintOverall(lvl, avg) {
 }
 
 /* ── Duration panel ── */
-function paintDuration(dur, lvl) {
-  el('dur-num').textContent = dur;
-  el('dur-pct').textContent = (dur * 0.9).toFixed(1) + '%';
+function paintDuration(dur, lvl, mat, mr) {
+  // Display value with 2 decimal places
+  el('dur-num').textContent = dur.toFixed(2);
+
+  // Price drop approximation: Duration × 1% rate change ≈ dur% price drop
+  el('dur-pct').textContent = (dur * 0.01 * 100).toFixed(2) + '%';
+
+  // Formula note
+  el('dur-formula').textContent =
+    `= ${mat} yrs ÷ (1 + ${mr}%) = ${dur.toFixed(2)} yrs`;
 
   const col = { low:'var(--low)', mod:'var(--mod)', hi:'var(--hi)' };
   el('dur-num').style.color = col[lvl];
 
-  // Thumb position: 1yr→0%, 20yr→100%
-  const pct = Math.min(Math.max(((dur - 1) / 19) * 100, 0), 100);
+  // Thumb position across 0–20yr scale
+  const pct = Math.min(Math.max(((dur - 0) / 20) * 100, 0), 100);
   requestAnimationFrame(() => { el('dur-thumb').style.left = pct + '%'; });
 
-  // Duration has a badge only (no fill bar) — set directly to avoid null error
+  // Badge
   const badgeCls = { low:'badge b-low', mod:'badge b-mod', hi:'badge b-hi' };
   const badgeTxt = { low:'LOW 🟢',      mod:'MODERATE 🟡', hi:'HIGH 🔴'   };
   const b = el('b-dur');
@@ -876,9 +904,9 @@ function paintDuration(dur, lvl) {
   b.textContent = badgeTxt[lvl];
 
   const detail = {
-    low: `Short duration (${dur} yrs) — low sensitivity to interest rate movements.`,
-    mod: `Medium duration (${dur} yrs) — moderate sensitivity; rate changes cause noticeable price shifts.`,
-    hi:  `Long duration (${dur} yrs) — high sensitivity; even small rate changes cause large price swings.`
+    low: `Duration of ${dur.toFixed(2)} yrs is short — bond price is less sensitive to rate changes. A 1% rate rise causes ~${(dur * 1).toFixed(2)}% price drop.`,
+    mod: `Duration of ${dur.toFixed(2)} yrs is moderate — noticeable price movement with rate changes. A 1% rate rise causes ~${(dur * 1).toFixed(2)}% price drop.`,
+    hi:  `Duration of ${dur.toFixed(2)} yrs is long — bond price is highly sensitive to rate changes. A 1% rate rise causes ~${(dur * 1).toFixed(2)}% price drop.`
   };
   el('dur-detail').textContent = '"' + detail[lvl] + '"';
 }
